@@ -61,7 +61,9 @@
 		"registry": "https://registry.npmjs.org/"
 	},
 	"sideEffects": [
-		"./dist/paradimg-auto.*"
+		"./dist/paradimg-auto.*",
+		"./src/assets/js/copy-buttons.js",
+		"./src/assets/js/playground.js"
 	],
 	"license": "ISC",
 	"type": "module",
