@@ -105,14 +105,14 @@ const definitions = {
 	brightness: {
 		label: 'Brightness',
 		options:
-			'<label><span>Factor</span><input name="factor" type="number" min="0" step="0.05" /></label>',
+			'<label><span>Factor</span><input data-setting-control="range" type="range" min="0" max="2" step="0.05" /><input data-setting-control="number" name="factor" type="number" min="0" step="0.05" /></label>',
 		value: settings => settings.factor,
 		description: value => value,
 	},
 	contrast: {
 		label: 'Contrast',
 		options:
-			'<label><span>Factor</span><input name="factor" type="number" min="0" step="0.05" /></label>',
+			'<label><span>Factor</span><input data-setting-control="range" type="range" min="0" max="2" step="0.05" /><input data-setting-control="number" name="factor" type="number" min="0" step="0.05" /></label>',
 		value: settings => settings.factor,
 		description: value => value,
 	},
@@ -162,6 +162,9 @@ const renderSettings = () => {
 	Object.entries(settings[type]).forEach(([name, value]) => {
 		effectOptions.querySelector(`[name="${name}"]`).value = value
 	})
+	const range = effectOptions.querySelector('[data-setting-control="range"]')
+	const number = effectOptions.querySelector('[data-setting-control="number"]')
+	if (range && number) range.value = number.value
 }
 const writeHash = () => {
 	const url = new URL(window.location.href)
@@ -227,7 +230,18 @@ effectToAdd.addEventListener('change', () => {
 	syncSettings()
 	renderSettings()
 })
-effectOptions.addEventListener('input', syncSettings)
+effectOptions.addEventListener('input', event => {
+	const { target } = event
+	if (target.dataset.settingControl === 'range') {
+		effectOptions.querySelector('[data-setting-control="number"]').value =
+			target.value
+	}
+	if (target.dataset.settingControl === 'number') {
+		effectOptions.querySelector('[data-setting-control="range"]').value =
+			target.value
+	}
+	syncSettings()
+})
 document.querySelector('#add-effect').addEventListener('click', () => {
 	syncSettings()
 	const type = effectToAdd.value
