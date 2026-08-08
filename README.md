@@ -105,8 +105,8 @@ Add modifiers after `#?` in an image URL. They run from left to right.
 ```
 
 Paradimg selects `img[src*="#?"]`, decodes the source image, renders each
-requested effect to a Canvas, then replaces the image with a PNG object URL.
-The original URL remains available in `data-image-processor-original-src`.
+requested effect to a Canvas, then replaces the image with a PNG object URL. The
+original URL remains available in `data-image-processor-original-src`.
 
 [Back to top](#)
 
@@ -114,16 +114,16 @@ The original URL remains available in `data-image-processor-original-src`.
 
 ## URL modifiers
 
-| Modifier | Description |
-| --- | --- |
-| `brightness=1.15` | Multiplies each RGB channel. Defaults to `1.15`. |
-| `contrast=1.2` | Adjusts contrast around a midpoint of 128. Defaults to `1.2`. |
-| `bw` | Converts to grayscale. Use `bw=invert` or `bw=threshold` for variants. |
-| `half` | Resizes the image to 50% with smoothing. |
-| `double` | Resizes to 200% with pixelated nearest-neighbour scaling. |
-| `dither` | Applies an 8×8, 8-colour ordered dither. |
-| `dither=4x4,4c` | Chooses a Bayer matrix (`2x2`, `4x4`, `8x8`, `16x16`, `none`) and colour levels (`2c`, `4c`, `8c`). |
-| `dither=8x8,bw` | Uses two-level monochrome ordered dithering. |
+| Modifier          | Description                                                                                         |
+| ----------------- | --------------------------------------------------------------------------------------------------- |
+| `brightness=1.15` | Multiplies each RGB channel. Defaults to `1.15`.                                                    |
+| `contrast=1.2`    | Adjusts contrast around a midpoint of 128. Defaults to `1.2`.                                       |
+| `bw`              | Converts to grayscale. Use `bw=invert` or `bw=threshold` for variants.                              |
+| `half`            | Resizes the image to 50% with smoothing.                                                            |
+| `double`          | Resizes to 200% with pixelated nearest-neighbour scaling.                                           |
+| `dither`          | Applies an 8×8, 8-colour ordered dither.                                                            |
+| `dither=4x4,4c`   | Chooses a Bayer matrix (`2x2`, `4x4`, `8x8`, `16x16`, `none`) and colour levels (`2c`, `4c`, `8c`). |
+| `dither=8x8,bw`   | Uses two-level monochrome ordered dithering.                                                        |
 
 Layout fragments can coexist with modifiers. Paradimg ignores unknown flags, so
 an application can keep flags such as `large` or `full` for its own CSS:
@@ -142,16 +142,16 @@ The package exports the processor and every built-in plugin:
 
 ```js
 import {
-  ImageProcessor,
-  brightness,
-  bw,
-  contrast,
-  createImageProcessor,
-  dither,
-  double,
-  half,
-  parseHashFlags,
-  processImages,
+    ImageProcessor,
+    brightness,
+    bw,
+    contrast,
+    createImageProcessor,
+    dither,
+    double,
+    half,
+    parseHashFlags,
+    processImages,
 } from 'paradimg'
 ```
 
@@ -187,8 +187,8 @@ Dithered images are clickable after processing: clicking swaps between the
 processed PNG and the original source. This is useful for inspecting an effect
 without a separate before/after UI.
 
-Paradimg is browser-only because it uses `<canvas>` and `HTMLImageElement`.
-For a no-JavaScript baseline, generate static derivatives at build time and use
+Paradimg is browser-only because it uses `<canvas>` and `HTMLImageElement`. For
+a no-JavaScript baseline, generate static derivatives at build time and use
 Paradimg as an optional enhancement.
 
 [Back to top](#)

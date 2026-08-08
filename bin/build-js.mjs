@@ -6,7 +6,13 @@ const root = process.cwd()
 const pkg = JSON.parse(await readFile(resolve(root, 'package.json'), 'utf8'))
 const banner = `/*! ${pkg.name} v${pkg.version} | (c) ${new Date().getFullYear()} ${pkg.author.name} <${pkg.author.url}> | ${pkg.license} Licence */`
 
-const buildLibrary = async ({ entry, fileName, formats, minify = false, name }) =>
+const buildLibrary = async ({
+	entry,
+	fileName,
+	formats,
+	minify = false,
+	name,
+}) =>
 	build({
 		configFile: false,
 		publicDir: false,
@@ -50,6 +56,7 @@ await Promise.all(
 		.map(async fileName => {
 			const filePath = resolve(root, 'dist', fileName)
 			const file = await readFile(filePath, 'utf8')
-			if (!file.startsWith(banner)) await writeFile(filePath, `${banner}\n${file}`)
+			if (!file.startsWith(banner))
+				await writeFile(filePath, `${banner}\n${file}`)
 		})
 )
