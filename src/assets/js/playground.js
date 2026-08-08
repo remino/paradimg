@@ -74,6 +74,8 @@ const effectOptions = document.querySelector('#effect-options')
 const moveUp = document.querySelector('#move-up')
 const moveDown = document.querySelector('#move-down')
 const deleteEffect = document.querySelector('#delete-effect')
+const updateEffect = document.querySelector('#update-effect')
+const addEffect = document.querySelector('#add-effect')
 const defaults = () => ({
 	dither: { pattern: '4x4', colours: '4c' },
 	bw: { mode: '' },
@@ -131,6 +133,8 @@ const definitions = {
 }
 let effects = [{ type: 'dither', value: '4x4,4c' }]
 let settings = defaults()
+let editingIndex = -1
+let renderedType = effectToAdd.value
 const flags = () =>
 	effects.map(({ type, value }) => (value ? `${type}=${value}` : type))
 const formatEffect = effect => {
@@ -151,12 +155,38 @@ const renderEffects = (selectedIndex = -1) => {
 	effectsSelect.selectedIndex = selectedIndex
 	updateActions()
 }
+const readEffectSettings = ({ type, value }) => {
+	const next = defaults()[type]
+	if (type === 'dither') {
+		const [pattern, colours] = value.split(',')
+		next.pattern = pattern || '8x8'
+		next.colours = colours || '8c'
+	}
+	if (type === 'bw') next.mode = value
+	if (type === 'brightness' || type === 'contrast') {
+		next.factor = value || next.factor
+	}
+	return next
+}
+const setEditingEffect = index => {
+	editingIndex = index
+	const effect = effects[index]
+	effectToAdd.value = effect.type
+	settings[effect.type] = readEffectSettings(effect)
+	renderSettings()
+	updateEffect.hidden = false
+}
+const setAddingEffect = () => {
+	editingIndex = -1
+	updateEffect.hidden = true
+}
 const syncSettings = () =>
 	effectOptions.querySelectorAll('[name]').forEach(control => {
-		settings[effectToAdd.value][control.name] = control.value
+		settings[renderedType][control.name] = control.value
 	})
 const renderSettings = () => {
 	const type = effectToAdd.value
+	renderedType = type
 	const definition = definitions[type]
 	effectOptions.innerHTML = `<fieldset><legend class="sr-only">Settings for ${definition.label}</legend>${definition.options}</fieldset>`
 	Object.entries(settings[type]).forEach(([name, value]) => {
@@ -204,12 +234,17 @@ const render = async () => {
 	await processImages({ selector: '#preview' })
 }
 
-effectsSelect.addEventListener('change', updateActions)
+effectsSelect.addEventListener('change', () => {
+	updateActions()
+	if (effectsSelect.selectedIndex === -1) setAddingEffect()
+	else setEditingEffect(effectsSelect.selectedIndex)
+})
 moveUp.addEventListener('click', () => {
 	const index = effectsSelect.selectedIndex
 	if (index < 1) return
 	;[effects[index - 1], effects[index]] = [effects[index], effects[index - 1]]
 	renderEffects(index - 1)
+	setEditingEffect(index - 1)
 	render()
 })
 moveDown.addEventListener('click', () => {
@@ -217,6 +252,7 @@ moveDown.addEventListener('click', () => {
 	if (index < 0 || index === effects.length - 1) return
 	;[effects[index], effects[index + 1]] = [effects[index + 1], effects[index]]
 	renderEffects(index + 1)
+	setEditingEffect(index + 1)
 	render()
 })
 deleteEffect.addEventListener('click', () => {
@@ -224,10 +260,12 @@ deleteEffect.addEventListener('click', () => {
 	if (index < 0) return
 	effects.splice(index, 1)
 	renderEffects()
+	setAddingEffect()
 	render()
 })
 effectToAdd.addEventListener('change', () => {
 	syncSettings()
+	setAddingEffect()
 	renderSettings()
 })
 effectOptions.addEventListener('input', event => {
@@ -242,11 +280,24 @@ effectOptions.addEventListener('input', event => {
 	}
 	syncSettings()
 })
-document.querySelector('#add-effect').addEventListener('click', () => {
+addEffect.addEventListener('click', () => {
 	syncSettings()
 	const type = effectToAdd.value
-	effects.push({ type, value: definitions[type].value(settings[type]) })
-	renderEffects(effects.length - 1)
+	const effect = { type, value: definitions[type].value(settings[type]) }
+	effects.push(effect)
+	renderEffects()
+	setAddingEffect()
+	render()
+})
+updateEffect.addEventListener('click', () => {
+	if (editingIndex === -1) return
+	syncSettings()
+	const type = effectToAdd.value
+	effects[editingIndex] = {
+		type,
+		value: definitions[type].value(settings[type]),
+	}
+	renderEffects(editingIndex)
 	render()
 })
 document.querySelector('#reset').addEventListener('click', () => {
@@ -254,6 +305,7 @@ document.querySelector('#reset').addEventListener('click', () => {
 	settings = defaults()
 	effectToAdd.value = 'dither'
 	renderEffects()
+	setAddingEffect()
 	renderSettings()
 	render()
 })
