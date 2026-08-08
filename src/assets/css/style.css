@@ -4,6 +4,19 @@ main {
 	margin-block-end: var(--rmn-ribbon-push, 0px);
 }
 
+body > header h1,
+.playground-header h1 {
+	display: flex;
+	flex-flow: row nowrap;
+	text-transform: lowercase;
+
+	&::before {
+		content: '#?';
+		font-weight: normal;
+		opacity: 0.5;
+	}
+}
+
 .code-block {
 	margin-block-end: var(--dress-m-be);
 	margin-block-start: var(--dress-m-bs);
