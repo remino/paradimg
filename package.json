@@ -37,6 +37,8 @@
   },
   "scripts": {
     "build": "npm run lib:build && astro build",
+		"deploy": "rsdeploy -w",
+		"deploy:dryrun": "rsdeploy",
     "dev": "astro dev",
 		"docs:commit": "export COMMIT=\"$(git rev-parse HEAD)\" && cd deploy && git add . && git commit -m \"Add build for $COMMIT\"; true",
 		"docs:publish": "npm run build && npm run docs:commit && npm run deploy && npm run docs:push",
