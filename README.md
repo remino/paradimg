@@ -2,7 +2,7 @@
 
 Browser-side image processing controlled through URL fragments.
 
-Paradimg v0.1.0
+Paradimg v0.1.1
 
 By Rémino Rem  
 <https://remino.net/>
@@ -49,7 +49,7 @@ Mirrors:
 Use a pinned version in production:
 
 ```html
-<script src="https://unpkg.com/paradimg@0.1.0"></script>
+<script src="https://unpkg.com/paradimg@0.1.1"></script>
 ```
 
 ### npm
