@@ -12,6 +12,7 @@ const {
 	bodyClass = '',
 	mainClass = '',
 	showHeader = true,
+	breadcrumbs,
 } = Astro.props
 const siteUrl = Astro.site
 	? new URL(path, Astro.site).toString()
@@ -30,6 +31,17 @@ const navItems = [
 		external: true,
 	},
 ]
+const breadcrumbItems =
+	breadcrumbs ??
+	(title === 'Paradimg'
+		? [{ label: 'Paradimg', href: '/paradimg/' }]
+		: [
+				{ label: 'Paradimg', href: '/paradimg/' },
+				{
+					label: title.replace(/^Paradimg\s*/i, ''),
+					href: path,
+				},
+			])
 ---
 
 <!doctype html>
@@ -65,7 +77,13 @@ const navItems = [
 		<main class={mainClass || undefined}><slot /></main>
 		<div class="rmn-nav__content">
 			<ul class="rmn-breadcrumbs">
-				<li><a href="/paradimg/">Paradimg</a></li>
+				{
+					breadcrumbItems.map((item: { label: string; href?: string }) => (
+						<li>
+							{item.href ? <a href={item.href}>{item.label}</a> : item.label}
+						</li>
+					))
+				}
 			</ul>
 		</div>
 		<SiteNavFooter />
