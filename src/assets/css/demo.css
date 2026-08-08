@@ -175,11 +175,11 @@
 	.effect-actions {
 		display: flex;
 		flex-flow: row wrap;
-		gap: calc(var(--dress-m-b) / 2) calc(var(--dress-m-i) / 8);
+		gap: calc(var(--dress-m-b) / 2) calc(var(--dress-m-i) / 2);
 		justify-content: flex-end;
 		margin-block: var(--dress-m-b);
 
-		button {
+		button[type] {
 			margin: 0;
 		}
 	}
