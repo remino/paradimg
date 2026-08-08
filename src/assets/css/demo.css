@@ -44,6 +44,7 @@
 
 .preview-stage {
 	align-content: center;
+	align-items: center;
 	border: var(--dress-bs) dashed;
 	box-sizing: border-box;
 	display: grid;
@@ -52,6 +53,12 @@
 	min-inline-size: 0;
 	overflow: auto;
 	padding: var(--dress-p-b) var(--dress-p-i);
+	place-items: center;
+
+	img {
+		max-block-size: 100%;
+		max-inline-size: 100%;
+	}
 
 	&:fullscreen {
 		background: var(--dress-bg);
