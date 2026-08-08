@@ -101,7 +101,7 @@ Distribution files:
 Add modifiers after `#?` in an image URL. They run from left to right.
 
 ```html
-<img src="portrait.avif#?half&dither=4x4,8c" alt="A pixelated portrait" />
+<img src="portrait.jpg#?half&dither=4x4,8c" alt="A pixelated portrait" />
 ```
 
 Paradimg selects `img[src*="#?"]`, decodes the source image, renders each
