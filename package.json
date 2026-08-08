@@ -38,6 +38,9 @@
   "scripts": {
     "build": "npm run lib:build && astro build",
     "dev": "astro dev",
+		"docs:commit": "export COMMIT=\"$(git rev-parse HEAD)\" && cd deploy && git add . && git commit -m \"Add build for $COMMIT\"; true",
+		"docs:publish": "npm run build && npm run docs:commit && npm run deploy && npm run docs:push",
+		"docs:push": "cd deploy && git push origin",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lib:build": "node bin/build-js.mjs",
