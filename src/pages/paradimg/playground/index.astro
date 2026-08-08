@@ -36,39 +36,28 @@ import '../../../assets/css/demo.css'
 	<section class="playground-controls">
 		<form>
 			<details open>
-				<summary>Effects</summary><label
-					><span>Ordered dither</span><select id="dither"
-						><option value="">none</option><option value="dither"
-							>default</option
-						><option value="dither=2x2,4c">2×2 / 4 colours</option><option
-							value="dither=4x4,4c"
-							selected>4×4 / 4 colours</option
-						><option value="dither=8x8,8c">8×8 / 8 colours</option><option
-							value="dither=8x8,bw">8×8 monochrome</option
-						></select
-					></label
-				><label class="checkbox-control"
-					><input id="half" type="checkbox" /><span><code>half</code></span
-					></label
-				><label class="checkbox-control"
-					><input id="bw" type="checkbox" /><span><code>bw</code></span></label
-				>
-			</details><details open>
-				<summary>Adjustments</summary><label
-					><span><code>brightness</code></span><input
-						id="brightness"
-						type="number"
-						step="0.05"
-						value="1"
-					/></label
-				><label
-					><span><code>contrast</code></span><input
-						id="contrast"
-						type="number"
-						step="0.05"
-						value="1"
-					/></label
-				>
+				<summary>Effects</summary>
+				<select id="effects" size="6" aria-label="Effects stack"></select>
+				<div class="effect-actions">
+					<button id="move-up" type="button" disabled>Move Up</button>
+					<button id="move-down" type="button" disabled>Move Down</button>
+					<button id="delete-effect" type="button" disabled>Delete</button>
+				</div>
+			</details>
+			<details open>
+				<summary>Add Effect</summary>
+				<select id="effect-to-add" aria-label="Effect to add">
+					<option value="dither">Ordered dither</option>
+					<option value="bw">Black and white</option>
+					<option value="brightness">Brightness</option>
+					<option value="contrast">Contrast</option>
+					<option value="half">Scale to half</option>
+					<option value="double">Scale to double</option>
+				</select>
+				<div id="effect-options"></div>
+				<div class="effect-actions">
+					<button id="add-effect" type="button">Add</button>
+				</div>
 			</details>
 		</form>
 	</section>
@@ -150,19 +139,151 @@ import '../../../assets/css/demo.css'
 		const image = document.querySelector('#preview')
 		const code = document.querySelector('#code')
 		const stage = document.querySelector('#stage')
-		const controls = ['dither', 'half', 'bw', 'brightness', 'contrast'].map(
-			id => document.querySelector(`#${id}`)
-		)
-		const render = async () => {
-			const flags = []
-			if (document.querySelector('#half').checked) flags.push('half')
-			if (document.querySelector('#bw').checked) flags.push('bw')
-			const brightness = document.querySelector('#brightness').value
-			const contrast = document.querySelector('#contrast').value
-			if (brightness !== '1') flags.push(`brightness=${brightness}`)
-			if (contrast !== '1') flags.push(`contrast=${contrast}`)
-			const dither = document.querySelector('#dither').value
-			if (dither) flags.push(dither)
+		const effectsSelect = document.querySelector('#effects')
+		const effectToAdd = document.querySelector('#effect-to-add')
+		const effectOptions = document.querySelector('#effect-options')
+		const moveUp = document.querySelector('#move-up')
+		const moveDown = document.querySelector('#move-down')
+		const deleteEffect = document.querySelector('#delete-effect')
+		const defaultAddSettings = () => ({
+			dither: { 'dither-pattern': '4x4', 'dither-colours': '4c' },
+			bw: { 'bw-mode': '' },
+			brightness: { 'brightness-factor': '1.15' },
+			contrast: { 'contrast-factor': '1.2' },
+			half: {},
+			double: {},
+		})
+		const effectDefinitions = {
+			dither: {
+				label: 'Ordered dither',
+				defaultValue: '4x4,4c',
+				options: () =>
+					`<label><span>Pattern</span><select name="dither-pattern"><option value="2x2">2×2</option><option value="4x4" selected>4×4</option><option value="8x8">8×8</option><option value="16x16">16×16</option><option value="none">none</option></select></label><label><span>Colours</span><select name="dither-colours"><option value="2c">2 colours</option><option value="4c" selected>4 colours</option><option value="8c">8 colours</option><option value="bw">monochrome</option></select></label>`,
+				value: () =>
+					`${effectOptions.querySelector('[name="dither-pattern"]').value},${effectOptions.querySelector('[name="dither-colours"]').value}`,
+				description: value => {
+					const [pattern, colours] = value.split(',')
+					if (!colours) return pattern
+					return `${pattern} / ${colours === 'bw' ? 'monochrome' : `${colours[0]} colours`}`
+				},
+			},
+			bw: {
+				label: 'Black and white',
+				defaultValue: '',
+				options: () =>
+					`<label><span>Mode</span><select name="bw-mode"><option value="" selected>grayscale</option><option value="invert">inverted</option><option value="threshold">threshold</option></select></label>`,
+				value: () => effectOptions.querySelector('[name="bw-mode"]').value,
+				description: value => value || 'grayscale',
+			},
+			brightness: {
+				label: 'Brightness',
+				defaultValue: '1.15',
+				options: () =>
+					`<label><span>Factor</span><input name="brightness-factor" type="number" min="0" step="0.05" value="1.15" /></label>`,
+				value: () =>
+					effectOptions.querySelector('[name="brightness-factor"]').value,
+				description: value => value,
+			},
+			contrast: {
+				label: 'Contrast',
+				defaultValue: '1.2',
+				options: () =>
+					`<label><span>Factor</span><input name="contrast-factor" type="number" min="0" step="0.05" value="1.2" /></label>`,
+				value: () =>
+					effectOptions.querySelector('[name="contrast-factor"]').value,
+				description: value => value,
+			},
+			half: {
+				label: 'Scale to half',
+				defaultValue: '',
+				options: () => '',
+				value: () => '',
+				description: () => '',
+			},
+			double: {
+				label: 'Scale to double',
+				defaultValue: '',
+				options: () => '',
+				value: () => '',
+				description: () => '',
+			},
+		}
+		let effects = [{ type: 'dither', value: '4x4,4c' }]
+		let addSettings = defaultAddSettings()
+		const formatEffect = effect => {
+			const definition = effectDefinitions[effect.type]
+			const description = definition.description(effect.value)
+			return description
+				? `${definition.label}: ${description}`
+				: definition.label
+		}
+		const updateEffectActions = () => {
+			const selectedIndex = effectsSelect.selectedIndex
+			const hasSelection = selectedIndex !== -1
+			moveUp.disabled = !hasSelection || selectedIndex === 0
+			moveDown.disabled = !hasSelection || selectedIndex === effects.length - 1
+			deleteEffect.disabled = !hasSelection
+		}
+		const renderEffects = selectedIndex => {
+			effectsSelect.replaceChildren(
+				...effects.map(
+					(effect, index) => new Option(formatEffect(effect), index)
+				)
+			)
+			effectsSelect.selectedIndex = selectedIndex
+			updateEffectActions()
+		}
+		const renderEffectOptions = () => {
+			const type = effectToAdd.value
+			const definition = effectDefinitions[type]
+			effectOptions.innerHTML = `<fieldset><legend class="sr-only">Settings for ${definition.label}</legend>${definition.options()}</fieldset>`
+			for (const [name, value] of Object.entries(addSettings[type])) {
+				const control = effectOptions.querySelector(`[name="${name}"]`)
+				if (control) control.value = value
+			}
+		}
+		const syncAddSettings = () => {
+			const settings = addSettings[effectToAdd.value]
+			effectOptions.querySelectorAll('[name]').forEach(control => {
+				settings[control.name] = control.value
+			})
+		}
+		const writeStateToHash = () => {
+			const url = new URL(window.location.href)
+			const flags = effects.map(({ type, value }) =>
+				value ? `${type}=${value}` : type
+			)
+			url.hash = flags.length ? `?${flags.join('&')}` : ''
+			window.history.replaceState(null, '', url)
+		}
+		const readStateFromHash = () => {
+			const hash = window.location.hash.slice(1)
+			if (!hash.startsWith('?')) return
+
+			effects = hash
+				.slice(1)
+				.split('&')
+				.flatMap(raw => {
+					const equalsIndex = raw.indexOf('=')
+					const type = decodeURIComponent(
+						equalsIndex === -1 ? raw : raw.slice(0, equalsIndex)
+					)
+					if (!effectDefinitions[type]) return []
+					return [
+						{
+							type,
+							value:
+								equalsIndex === -1
+									? ''
+									: decodeURIComponent(raw.slice(equalsIndex + 1)),
+						},
+					]
+				})
+		}
+		const render = async ({ syncHash = true } = {}) => {
+			const flags = effects.map(({ type, value }) =>
+				value ? `${type}=${value}` : type
+			)
 			const src = `/paradimg-demo.svg${flags.length ? `#?${flags.join('&')}` : ''}`
 			image.removeAttribute('data-image-processor-original-src')
 			image.removeAttribute('data-image-processor-processed-src')
@@ -170,15 +291,57 @@ import '../../../assets/css/demo.css'
 			image.removeAttribute('height')
 			image.src = src
 			code.textContent = `<script src="https://unpkg.com/paradimg@0.1.0"><\/script>\n<img src="${src}" alt="" />`
+			if (syncHash) writeStateToHash()
 			await processImages({ selector: '#preview' })
 		}
-		controls.forEach(control => control.addEventListener('input', render))
+		effectsSelect.addEventListener('change', updateEffectActions)
+		moveUp.addEventListener('click', () => {
+			const index = effectsSelect.selectedIndex
+			if (index < 1) return
+			;[effects[index - 1], effects[index]] = [
+				effects[index],
+				effects[index - 1],
+			]
+			renderEffects(index - 1)
+			render()
+		})
+		moveDown.addEventListener('click', () => {
+			const index = effectsSelect.selectedIndex
+			if (index === -1 || index === effects.length - 1) return
+			;[effects[index], effects[index + 1]] = [
+				effects[index + 1],
+				effects[index],
+			]
+			renderEffects(index + 1)
+			render()
+		})
+		deleteEffect.addEventListener('click', () => {
+			const index = effectsSelect.selectedIndex
+			if (index === -1) return
+			effects.splice(index, 1)
+			renderEffects(-1)
+			render()
+		})
+		effectToAdd.addEventListener('change', () => {
+			syncAddSettings()
+			renderEffectOptions()
+		})
+		effectOptions.addEventListener('input', () => {
+			syncAddSettings()
+		})
+		document.querySelector('#add-effect').addEventListener('click', () => {
+			syncAddSettings()
+			const type = effectToAdd.value
+			effects.push({ type, value: effectDefinitions[type].value() })
+			renderEffects(effects.length - 1)
+			render()
+		})
 		document.querySelector('#reset').addEventListener('click', () => {
-			document.querySelector('#dither').value = 'dither=4x4,4c'
-			document.querySelector('#half').checked = false
-			document.querySelector('#bw').checked = false
-			document.querySelector('#brightness').value = '1'
-			document.querySelector('#contrast').value = '1'
+			effects = [{ type: 'dither', value: '4x4,4c' }]
+			addSettings = defaultAddSettings()
+			effectToAdd.value = 'dither'
+			renderEffects(-1)
+			renderEffectOptions()
 			render()
 		})
 		document
@@ -189,6 +352,9 @@ import '../../../assets/css/demo.css'
 			.addEventListener('click', () =>
 				navigator.clipboard.writeText(code.source)
 			)
+		readStateFromHash()
+		renderEffects(-1)
+		renderEffectOptions()
 		render()
 	</script>
 </BaseLayout>
