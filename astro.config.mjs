@@ -1,10 +1,10 @@
 // @ts-check
 import { defineConfig } from 'astro/config'
+import { fileURLToPath } from 'node:url'
+import { loadEnv } from 'vite'
 import { unified } from '@astrojs/markdown-remark'
 import compressor from 'astro-compressor'
 import minifyHtml from 'astro-minify-html'
-import { fileURLToPath } from 'node:url'
-import { loadEnv } from 'vite'
 import rehypeCodeBlocks from './src/lib/rehype-code-blocks.mjs'
 
 /*
