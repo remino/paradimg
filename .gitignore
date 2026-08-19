@@ -1,5 +1,0 @@
-node_modules/
-dist/
-deploy/
-.astro/
-.env
